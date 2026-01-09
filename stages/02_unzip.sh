@@ -21,4 +21,4 @@ for zipfile in "$downloadpath"/*.zip; do
 done
 
 echo "Extraction complete."
-find "$rawpath" -type f | head -20
+find "$rawpath" -type f | head -20 || true
