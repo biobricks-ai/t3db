@@ -1,36 +1,42 @@
 #!/usr/bin/env bash
 
-# Script to download files
+# Script to download T3DB (Toxin and Toxin-Target Database) files
+# Source: https://www.t3db.ca/downloads
+# License: Free for academic use, commercial use requires permission
 
-# Get local path
+set -euo pipefail
+
 localpath=$(pwd)
-echo "Local path: $localpath"
+downloadpath="$localpath/download"
 
-# Create the list directory to save list of remote files and directories
-listpath="$localpath/list"
-echo "List path: $listpath"
-mkdir -p $listpath
-cd $listpath;
-
-# Define the FTP base address
-export ftpbase=""
-
-# Retrieve the list of files to download from FTP base address
-wget --no-remove-listing $ftpbase
-cat index.html | grep -Po '(?<=href=")[^"]*' | sort | cut -d "/" -f 10 > files.txt
-rm .listing
-rm index.html
-
-# Create the download directory
-export downloadpath="$localpath/download"
-echo "Download path: $downloadpath"
 mkdir -p "$downloadpath"
-cd $downloadpath;
 
-# Download files in parallel
-cat $listpath/files.txt | xargs -P14 -n1 bash -c '
-  echo $0
-  wget -nH -q -nc -P $downloadpath $ftpbase$0
-'
+echo "Downloading T3DB data files..."
 
-echo "Download done."
+BASE_URL="https://www.t3db.ca/system/downloads/current"
+
+# Download CSV files (main data)
+echo "Downloading toxins CSV..."
+wget --no-check-certificate -q -nc -O "$downloadpath/toxins.csv.zip" "$BASE_URL/toxins.csv.zip" || true
+
+echo "Downloading targets CSV..."
+wget --no-check-certificate -q -nc -O "$downloadpath/targets.csv.zip" "$BASE_URL/targets.csv.zip" || true
+
+echo "Downloading mechanisms of action CSV..."
+wget --no-check-certificate -q -nc -O "$downloadpath/moas.csv.zip" "$BASE_URL/moas.csv.zip" || true
+
+# Download SDF structures
+echo "Downloading toxin structures (SDF)..."
+wget --no-check-certificate -q -nc -O "$downloadpath/structures.zip" "$BASE_URL/structures.zip" || true
+
+# Download FASTA sequences
+echo "Downloading protein sequences..."
+wget --no-check-certificate -q -nc -O "$downloadpath/target_protein_sequences.fasta.zip" \
+    "$BASE_URL/sequences/protein/target_protein_sequences.fasta.zip" || true
+
+echo "Downloading gene sequences..."
+wget --no-check-certificate -q -nc -O "$downloadpath/target_gene_sequences.fasta.zip" \
+    "$BASE_URL/sequences/gene/target_gene_sequences.fasta.zip" || true
+
+echo "Download complete."
+ls -la "$downloadpath"

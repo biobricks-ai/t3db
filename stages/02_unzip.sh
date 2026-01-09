@@ -1,28 +1,24 @@
 #!/usr/bin/env bash
 
-# Script to unzip files
+# Script to extract T3DB zip files
 
-# Get local path
+set -euo pipefail
+
 localpath=$(pwd)
-echo "Local path: $localpath"
+downloadpath="$localpath/download"
+rawpath="$localpath/raw"
 
-# Set download path
-export downloadpath="$localpath/download"
-echo "Download path: $downloadpath"
+mkdir -p "$rawpath"
 
-# Set list path
-listpath="$localpath/list"
-echo "List path: $listpath"
+echo "Extracting T3DB files..."
 
-# Create raw path
-export rawpath="$localpath/raw"
-mkdir -p $rawpath
-echo "Raw path: $rawpath"
+# Extract all zip files
+for zipfile in "$downloadpath"/*.zip; do
+    if [[ -f "$zipfile" ]]; then
+        echo "Extracting $(basename "$zipfile")..."
+        unzip -o -q "$zipfile" -d "$rawpath"
+    fi
+done
 
-# Unzip files in parallel
-cat $listpath/files.txt | tail -n +2 | xargs -P14 -n1 bash -c '
-  filename="${0%.*}"
-  echo $downloadpath/$0
-  echo $rawpath/$filename
-  unzip $downloadpath/$0 -d $rawpath/$filename
-'
+echo "Extraction complete."
+find "$rawpath" -type f | head -20
